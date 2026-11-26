@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.barun.contact.mapper.ContactMapper">
+
+    <sql id="contactColumns">
+        c.id, c.name, c.phone, c.email, c.group_id, g.name AS group_name
+    </sql>
+
+    <select id="selectContactById" resultType="Contact">
+        SELECT <include refid="contactColumns"/>
+        FROM contact c
+        LEFT JOIN contact_group g ON g.id = c.group_id
+        WHERE c.id = #{id}
+    </select>
+
+    <select id="selectContactList" resultType="Contact">
+        SELECT <include refid="contactColumns"/>
+        FROM contact c
+        LEFT JOIN contact_group g ON g.id = c.group_id
+        ORDER BY c.${sort}
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countContact" resultType="long">
+        SELECT COUNT(*) FROM contact
+    </select>
+
+    <select id="countContactByPhone" resultType="int">
+        SELECT COUNT(*) FROM contact WHERE phone = #{phone}
+    </select>
+
+    <insert id="insertContact" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO contact (name, phone, email, group_id)
+        VALUES (#{name}, #{phone}, #{email}, #{groupId})
+    </insert>
+
+</mapper>
