@@ -10,6 +10,7 @@ class PhoneContactValidator(ContactValidator):
     """전화번호: 필수, 숫자만 남겨서 01로 시작하는 10~11자리."""
 
     def __init__(self, logger: Logger):
+        """의존 객체를 주입받는다."""
         self.logger = logger
 
     def validate(self, request: ContactCreateRequest) -> None:

@@ -1,11 +1,14 @@
 package com.barun.contact.validator;
 
 import com.barun.contact.domain.PhoneNumber;
-import com.barun.contact.dto.ContactCreateRequest;
 import com.barun.contact.exception.InvalidInputException;
+import com.barun.contact.vo.ContactCreateRequest;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/**
+ * 전화번호: 필수, 숫자만 남겨서 01로 시작하는 10~11자리.
+ */
 @Component
 @Order(2)
 public class PhoneContactValidator implements ContactValidator {

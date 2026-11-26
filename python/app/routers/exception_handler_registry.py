@@ -8,6 +8,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.exceptions.app_exception import AppException
 from app.models.error_model import ErrorCode, ErrorResponse
 
+# 오류 코드 → HTTP 상태. 서비스는 이 표를 몰라야 HTTP가 아닌 곳(배치, 테스트)에서도 그대로 쓸 수 있다.
 HTTP_STATUS_BY_ERROR_CODE = {
     ErrorCode.INVALID_INPUT: 400,
     ErrorCode.CONTACT_NOT_FOUND: 404,
@@ -21,6 +22,7 @@ class ExceptionHandlerRegistry:
     """서비스가 던진 오류 코드를 HTTP 상태 코드로 바꾸는 핸들러를 등록한다."""
 
     def __init__(self, logger: Logger):
+        """의존 객체를 주입받는다."""
         self.logger = logger
 
     def register(self, app: FastAPI) -> None:
@@ -32,7 +34,7 @@ class ExceptionHandlerRegistry:
         app.add_exception_handler(Exception, self._handle_unexpected_exception)
 
     async def _handle_app_exception(self, request: Request, exception: AppException) -> JSONResponse:
-        """비즈니스 오류."""
+        """업무 규칙 위반. 예상한 오류이므로 debug로만 남긴다."""
         self.logger.debug(f"요청 처리 실패: {exception.error_code.value} {exception.message}")
         return self._to_response(HTTP_STATUS_BY_ERROR_CODE[exception.error_code], exception.error_code, exception.message)
 
@@ -51,7 +53,7 @@ class ExceptionHandlerRegistry:
         return self._to_response(501, ErrorCode.NOT_IMPLEMENTED, str(exception))
 
     async def _handle_unexpected_exception(self, request: Request, exception: Exception) -> JSONResponse:
-        """처리하지 못한 오류."""
+        """처리하지 못한 오류. 내부 정보가 새지 않도록 응답에는 고정 문구만 주고, 자세한 내용은 로그로 남긴다."""
         self.logger.error(f"처리하지 못한 오류: {exception!r}", exc_info=exception)
         return self._to_response(500, ErrorCode.INTERNAL_ERROR, "서버 오류가 발생했습니다.")
 

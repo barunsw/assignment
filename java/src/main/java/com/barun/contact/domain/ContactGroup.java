@@ -1,5 +1,8 @@
 package com.barun.contact.domain;
 
+/**
+ * contact_group 테이블 한 행.
+ */
 public class ContactGroup {
 
     private Long id;

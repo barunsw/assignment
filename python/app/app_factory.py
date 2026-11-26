@@ -24,6 +24,7 @@ def create_app(logger: Logger, settings: Settings) -> FastAPI:
 
     contact_access = ContactAccess(logger)
     group_access = GroupAccess(logger)
+    # 목록 순서대로 검사한다. 규칙을 추가할 때는 구현 객체를 여기에 넣기만 하면 된다.
     contact_validator_list = [
         NameContactValidator(logger),
         PhoneContactValidator(logger),

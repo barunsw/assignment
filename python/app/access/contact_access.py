@@ -9,6 +9,7 @@ class ContactAccess:
     """contact 테이블 조회/저장. SQL 실행과 결과 반환만 한다."""
 
     def __init__(self, logger: Logger):
+        """의존 객체를 주입받는다."""
         self.logger = logger
 
     def select_contact_by_id(self, connection: sqlite3.Connection, contact_id: int) -> dict | None:
@@ -33,7 +34,7 @@ class ContactAccess:
         return connection.execute(contact_query.count_contact_by_phone, {"phone": phone}).fetchone()[0]
 
     def insert_contact(self, connection: sqlite3.Connection, contact: Contact) -> int:
-        """연락처를 저장하고 새 id를 돌려준다."""
+        """연락처를 저장하고 DB가 만든 새 id를 돌려준다."""
         cursor = connection.execute(contact_query.insert_contact, {
             "name": contact.name,
             "phone": contact.phone,

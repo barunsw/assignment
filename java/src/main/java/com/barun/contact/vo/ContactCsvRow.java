@@ -1,4 +1,4 @@
-package com.barun.contact.dto;
+package com.barun.contact.vo;
 
 /**
  * CSV 한 줄. lineNumber는 헤더를 1번째 줄로 센 파일의 줄 번호.

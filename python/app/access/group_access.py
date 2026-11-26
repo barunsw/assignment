@@ -8,6 +8,7 @@ class GroupAccess:
     """contact_group 테이블 조회. SQL 실행과 결과 반환만 한다."""
 
     def __init__(self, logger: Logger):
+        """의존 객체를 주입받는다."""
         self.logger = logger
 
     def select_group_list(self, connection: sqlite3.Connection) -> list[dict]:

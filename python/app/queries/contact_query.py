@@ -1,3 +1,4 @@
+# 그룹이 없는 연락처(group_id가 NULL)도 나오도록 LEFT JOIN을 쓴다. INNER JOIN이면 그런 연락처가 빠진다.
 select_contact_by_id = """
     SELECT c.id, c.name, c.phone, c.email, c.group_id, g.name AS group_name
     FROM contact c

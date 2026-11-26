@@ -11,6 +11,7 @@ class Database:
     """sqlite3 연결을 발급한다. 요청 하나 = 연결 하나 = 트랜잭션 하나."""
 
     def __init__(self, logger: Logger, database_path: Path):
+        """의존 객체를 주입받는다."""
         self.logger = logger
         self._database_path = database_path
 

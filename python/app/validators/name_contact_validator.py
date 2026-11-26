@@ -11,6 +11,7 @@ class NameContactValidator(ContactValidator):
     """이름: 필수, 앞뒤 공백 제외 50자 이하."""
 
     def __init__(self, logger: Logger):
+        """의존 객체를 주입받는다."""
         self.logger = logger
 
     def validate(self, request: ContactCreateRequest) -> None:

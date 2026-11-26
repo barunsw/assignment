@@ -3,14 +3,18 @@ server:
 
 spring:
   datasource:
+    # 설치 없이 돌도록 H2 메모리 DB를 쓰되, MariaDB와 같은 SQL 문법이 되도록 호환 모드로 띄운다.
+    # DB_CLOSE_DELAY=-1: 연결이 모두 닫혀도 서버가 떠 있는 동안 데이터를 유지한다.
     url: jdbc:h2:mem:contact;MODE=MariaDB;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
     username: sa
     password:
   sql:
     init:
+      # 시작할 때마다 schema.sql, data.sql을 실행한다(메모리 DB라 매번 비어 있다).
       mode: always
       encoding: UTF-8
   jackson:
+    # API 사양의 JSON 필드 이름이 snake_case다(groupId → group_id).
     property-naming-strategy: SNAKE_CASE
   servlet:
     multipart:
@@ -20,4 +24,5 @@ mybatis:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.barun.contact.domain
   configuration:
+    # DB 열 group_id를 자바 필드 groupId에 자동으로 넣는다.
     map-underscore-to-camel-case: true

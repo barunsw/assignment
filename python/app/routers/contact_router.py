@@ -13,13 +13,13 @@ def build_contact_router(contact_service: ContactService, database: Database) ->
 
     @router.post("", status_code=201)
     def register_contact(request: ContactCreateRequest, connection: sqlite3.Connection = Depends(database.get_connection)) -> ContactResponse:
-        """연락처를 등록한다."""
+        """연락처를 등록한다. 성공하면 201과 등록된 연락처를 돌려준다."""
         return contact_service.register_contact(connection, request)
 
     # /{contact_id}보다 먼저 선언해야 "search"가 id로 해석되지 않는다.
     @router.get("/search")
     def search_contacts(phone: str | None = None, connection: sqlite3.Connection = Depends(database.get_connection)) -> list[ContactResponse]:
-        """전화번호 부분 일치 검색."""
+        """전화번호 일부로 연락처를 검색한다. phone이 빠진 요청도 서비스가 같은 규칙으로 판단하도록 선택 파라미터로 받는다."""
         return contact_service.search_contacts_by_phone(connection, phone)
 
     @router.get("/{contact_id}")
@@ -34,7 +34,7 @@ def build_contact_router(contact_service: ContactService, database: Database) ->
 
     @router.post("/import")
     def import_contacts(file: UploadFile = File(...), connection: sqlite3.Connection = Depends(database.get_connection)) -> ImportResult:
-        """CSV 파일로 연락처를 가져온다."""
+        """CSV 파일로 연락처를 가져온다. 실패한 줄이 있어도 200과 결과 요약을 돌려준다."""
         return contact_service.import_contacts(connection, file.file.read())
 
     return router

@@ -1,5 +1,8 @@
 package com.barun.contact.exception;
 
+/**
+ * 없는 연락처 id.
+ */
 public class ContactNotFoundException extends AppException {
 
     public ContactNotFoundException(long id) {

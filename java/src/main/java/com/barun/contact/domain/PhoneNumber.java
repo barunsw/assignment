@@ -12,12 +12,17 @@ public final class PhoneNumber {
     private static final int LONG_NUMBER_LENGTH = 11;
     private static final int SHORT_NUMBER_LENGTH = 10;
 
+    // 만든 뒤 바뀌지 않는다. 그래서 HashSet이나 HashMap의 키로 써도 안전하다.
     private final String digits;
 
+    // 숫자만 남기는 처리를 빠뜨리지 않도록 생성은 of()로만 한다.
     private PhoneNumber(String digits) {
         this.digits = digits;
     }
 
+    /**
+     * 입력에서 숫자만 남겨 만든다. null도 빈 번호로 받아서, 형식이 맞는지는 isValid() 한곳에서 판단하게 한다.
+     */
     public static PhoneNumber of(String rawPhone) {
         if (rawPhone == null) {
             return new PhoneNumber("");
@@ -25,10 +30,16 @@ public final class PhoneNumber {
         return new PhoneNumber(NON_DIGIT_PATTERN.matcher(rawPhone).replaceAll(""));
     }
 
+    /**
+     * 숫자만 남긴 번호. DB에는 이 값을 저장한다.
+     */
     public String getDigits() {
         return digits;
     }
 
+    /**
+     * 01로 시작하는 10~11자리인지 확인한다.
+     */
     public boolean isValid() {
         return VALID_DIGITS_PATTERN.matcher(digits).matches();
     }
@@ -44,6 +55,9 @@ public final class PhoneNumber {
         return partArray[0] + "-" + "*".repeat(partArray[1].length()) + "-" + partArray[2];
     }
 
+    /**
+     * 숫자가 같으면 같은 번호다. 하이픈이 있든 없든 같다.
+     */
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -55,6 +69,10 @@ public final class PhoneNumber {
         return digits.equals(otherPhoneNumber.digits);
     }
 
+    /**
+     * equals와 같은 값(digits)으로 만든다.
+     * HashSet은 hashCode로 자리를 먼저 찾고 그 안에서 equals로 비교하므로, 둘이 어긋나면 같은 번호가 두 번 들어간다.
+     */
     @Override
     public int hashCode() {
         return digits.hashCode();

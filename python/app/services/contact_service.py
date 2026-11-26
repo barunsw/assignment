@@ -15,9 +15,10 @@ MAX_PAGE_SIZE = 100
 
 
 class ContactService:
-    """연락처 등록·조회·목록·CSV 가져오기."""
+    """연락처 업무 규칙: 등록, 조회, 목록, 검색, CSV 가져오기. 연결(트랜잭션)은 라우터에서 받아 access까지 그대로 넘긴다."""
 
     def __init__(self, logger: Logger, contact_access: ContactAccess, group_access: GroupAccess, contact_validator_list: list[ContactValidator], contact_csv_parser: ContactCsvParser):
+        """의존 객체를 주입받는다."""
         self.logger = logger
         self.contact_access = contact_access
         self.group_access = group_access
@@ -25,8 +26,9 @@ class ContactService:
         self.contact_csv_parser = contact_csv_parser
 
     def register_contact(self, connection: sqlite3.Connection, request: ContactCreateRequest) -> ContactResponse:
-        """연락처를 등록하고 등록된 연락처를 돌려준다."""
+        """연락처를 등록하고, 그룹 이름까지 붙은 결과를 다시 조회해 돌려준다."""
         self._validate(request)
+        # 없는 그룹은 외래 키로도 막히지만, 그러면 500이 난다. 400과 이유를 주려고 먼저 확인한다.
         if request.group_id is not None and self.group_access.select_group_by_id(connection, request.group_id) is None:
             raise InvalidInputException(f"존재하지 않는 그룹입니다. group_id={request.group_id}")
         contact_id = self._insert_new_contact(connection, request)
@@ -38,11 +40,12 @@ class ContactService:
         return ContactResponse.from_row(contact_row)
 
     def get_contact_page(self, connection: sqlite3.Connection, page: int, size: int, sort: str) -> ContactPageResponse:
-        """연락처 목록 한 페이지를 조회한다."""
+        """연락처 목록 한 페이지와 전체 연락처 수를 돌려준다."""
         if page < 1:
             raise InvalidInputException("page는 1 이상이어야 합니다.")
         if size < 1 or size > MAX_PAGE_SIZE:
             raise InvalidInputException(f"size는 1~{MAX_PAGE_SIZE} 사이여야 합니다.")
+        # page는 1부터 시작하므로 1페이지의 offset이 0이 되게 한다.
         offset = (page - 1) * size
         contact_row_list = self.contact_access.select_contact_list(connection, sort, size, offset)
         return ContactPageResponse(
@@ -60,7 +63,9 @@ class ContactService:
     def import_contacts(self, connection: sqlite3.Connection, content: bytes) -> ImportResult:
         """CSV 내용을 가져온다. 실패한 줄은 기록만 하고 나머지는 계속 가져온다."""
         row_list = self.contact_csv_parser.parse(content)
+        # 줄마다 DB를 조회하지 않도록 그룹 이름 → id를 한 번에 읽어 둔다.
         group_id_repo = self._load_group_id_repo(connection)
+        # PhoneNumber는 숫자로 비교(__eq__/__hash__)하므로, 하이픈 유무가 달라도 같은 번호로 걸러진다.
         imported_phone_set: set[PhoneNumber] = set()
         failure_list = []
 
@@ -75,7 +80,7 @@ class ContactService:
         return ImportResult(total=len(row_list), imported=imported_count, failed=len(failure_list), failures=failure_list)
 
     def _import_row(self, connection: sqlite3.Connection, row: ContactCsvRow, group_id_repo: dict[str, int], imported_phone_set: set[PhoneNumber]) -> None:
-        """CSV 한 줄을 검증하고 저장한다."""
+        """CSV 한 줄을 등록 요청으로 바꿔, 등록 API와 같은 규칙으로 검증하고 저장한다."""
         group_id = self._resolve_group_id(row.group_name, group_id_repo)
         request = ContactCreateRequest(name=row.name, phone=row.phone, email=row.email, group_id=group_id)
         self._validate(request)
@@ -102,21 +107,23 @@ class ContactService:
     def _insert_new_contact(self, connection: sqlite3.Connection, request: ContactCreateRequest) -> int:
         """중복을 확인하고 저장한 뒤 새 id를 돌려준다."""
         phone_number = PhoneNumber(request.phone)
+        # phone 열의 UNIQUE 제약으로도 막히지만, 그러면 500이 난다. 409와 이유를 주려고 먼저 확인한다.
         if self.contact_access.count_contact_by_phone(connection, phone_number.digits) > 0:
             raise DuplicateContactException("이미 등록된 전화번호입니다.")
 
         contact = Contact(name=request.name.strip(), phone=phone_number.digits, email=self._blank_to_none(request.email), group_id=request.group_id)
         contact.id = self.contact_access.insert_contact(connection, contact)
+        # Contact.__str__이 전화번호를 가리고 이메일을 빼므로 개인정보가 로그에 그대로 남지 않는다.
         self.logger.info(f"연락처 등록: {contact}")
         return contact.id
 
     def _validate(self, request: ContactCreateRequest) -> None:
-        """등록된 검증 규칙을 차례로 적용한다."""
+        """등록된 검증 규칙을 차례로 적용한다. 규칙을 추가해도 이 메서드는 바뀌지 않는다."""
         for one_validator in self.contact_validator_list:
             one_validator.validate(request)
 
     def _blank_to_none(self, value: str | None) -> str | None:
-        """빈 문자열은 None으로 바꾼다."""
+        """빈 문자열은 None으로 바꾼다. "값 없음"을 DB에 NULL 하나로만 저장하기 위해서다."""
         if value is None or not value.strip():
             return None
         return value.strip()

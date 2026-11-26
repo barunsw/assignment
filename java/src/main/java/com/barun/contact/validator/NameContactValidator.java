@@ -1,10 +1,13 @@
 package com.barun.contact.validator;
 
-import com.barun.contact.dto.ContactCreateRequest;
 import com.barun.contact.exception.InvalidInputException;
+import com.barun.contact.vo.ContactCreateRequest;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/**
+ * 이름: 필수, 앞뒤 공백 제외 50자 이하.
+ */
 @Component
 @Order(1)
 public class NameContactValidator implements ContactValidator {

@@ -9,6 +9,7 @@ class GroupService:
     """그룹 목록 조회."""
 
     def __init__(self, logger: Logger, group_access: GroupAccess):
+        """의존 객체를 주입받는다."""
         self.logger = logger
         self.group_access = group_access
 
