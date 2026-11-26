@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.barun</groupId>
+    <groupId>com.barunsw</groupId>
     <artifactId>contact</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>contact</name>

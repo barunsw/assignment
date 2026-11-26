@@ -128,12 +128,12 @@
 
 Java판과 Python판은 구조가 같습니다. 요청은 **API → 업무 처리 → DB 접근** 순서로 흐릅니다.
 
-| 역할 | Java (`java/src/main/java/com/barun/contact/`) | Python (`python/app/`) |
+| 역할 | Java (`java/src/main/java/com/barunsw/contact/`) | Python (`python/app/`) |
 |---|---|---|
 | API(요청 받기, 응답 돌려주기) | `controller/` | `routers/` |
 | 업무 처리 | `service/` | `services/` |
 | DB 접근 | `mapper/` (SQL은 `src/main/resources/mapper/*.xml`) | `access/` (SQL은 `queries/`) |
-| 요청·응답 데이터 | `vo/` | `models/` |
+| 데이터 클래스(요청·응답, DB 조회 결과) | `vo/` | `models/` |
 | 전화번호 | `domain/PhoneNumber` | `domain/phone_number.py` |
 | 입력 검증 규칙 | `validator/` | `validators/` |
 | 업무 오류 | `exception/` | `exceptions/` |

@@ -22,7 +22,7 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.barun.contact.domain
+  type-aliases-package: com.barunsw.contact.vo
   configuration:
     # DB 열 group_id를 자바 필드 groupId에 자동으로 넣는다.
     map-underscore-to-camel-case: true
